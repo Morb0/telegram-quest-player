@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { HttpModule, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TelegrafModule } from 'nestjs-telegraf';
 
@@ -14,6 +14,7 @@ import { BotUpdate } from './bot.update';
       }),
       inject: [ConfigService],
     }),
+    HttpModule,
     PlayerModule,
   ],
   providers: [BotService, BotUpdate],

@@ -1,25 +1,11 @@
-export type Media = Photo | Video | Gif | Audio;
+import { MediaKind } from '../enums/media-kind.enum';
+
+export type Media = HttpMedia;
 
 interface BaseMedia {
-  kind: string;
+  kind: MediaKind;
 }
 
 interface HttpMedia extends BaseMedia {
   url: string;
-}
-
-interface Photo extends HttpMedia {
-  kind: 'photo';
-}
-
-interface Video extends HttpMedia {
-  kind: 'video';
-}
-
-interface Gif extends HttpMedia {
-  kind: 'gif';
-}
-
-interface Audio extends HttpMedia {
-  kind: 'audio';
 }
