@@ -74,7 +74,11 @@ export class Harlowe3Strategy implements ParserStrategy {
     }
 
     const $video = this.$passage.querySelector('video');
-    if ($video && $video.src.includes('.mp4')) {
+    if (
+      $video &&
+      $video.src.startsWith('http') &&
+      $video.src.includes('.mp4')
+    ) {
       return {
         kind: MediaKind.Video,
         url: $video.src,
@@ -82,7 +86,7 @@ export class Harlowe3Strategy implements ParserStrategy {
     }
 
     const $audio = this.$passage.querySelector('audio');
-    if ($audio) {
+    if ($audio && $audio.src.startsWith('http')) {
       return {
         kind: MediaKind.Audio,
         url: $audio.src,
