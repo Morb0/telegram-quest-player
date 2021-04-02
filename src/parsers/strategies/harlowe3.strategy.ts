@@ -95,10 +95,16 @@ export class Harlowe3Strategy implements ParserStrategy {
   }
 
   private getPassageText(): string {
-    this.$passage.innerHTML = this.$passage.innerHTML.replace(
-      /<br\s*[\/]?>/gi,
-      '\n',
-    );
-    return this.$passage.textContent;
+    this.$passage.innerHTML = this.$passage.innerHTML
+      .replace(/<li>/g, '* ')
+      .replace(/<\/li>/g, '\n')
+      .replace(/[_*~]/g, '\\$&')
+      .replace(/<br>/g, '\n')
+      .replace(/<tw-consecutive-br>/g, '\n')
+      .replace(/<\/?h1>/g, '*')
+      .replace(/<\/?b>/g, '*')
+      .replace(/<\/?i>/g, '_')
+      .replace(/<\/?s>/g, '~');
+    return this.$passage.textContent.replace(/[#+\-=|{}.![\]()>`]/g, '\\$&');
   }
 }
