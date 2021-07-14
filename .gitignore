@@ -1,6 +1,6 @@
 .env
-./game/
-!./game/.gitkeep
+game/
+!game/.gitkeep
 
 # compiled output
 /dist
