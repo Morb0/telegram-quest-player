@@ -76,8 +76,8 @@ class QSpiderMenuParser {
     return $game.getElementsByTagName('h3')[0].textContent;
   }
 
-  private getGameDescription($game: Element): string | null {
-    return $game.getElementsByTagName('p')?.[0]?.textContent;
+  private getGameDescription($game: Element): string {
+    return $game.getElementsByTagName('p')?.[0]?.textContent || '';
   }
 
   private formatSceneText(text: string): string {
