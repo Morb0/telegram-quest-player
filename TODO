@@ -1,0 +1,4 @@
+- Add right selector anchor waiting after choice
+- Add error when scene not ready
+- Remove action buttons text parsing from modal text
+- Add support for text input modals
