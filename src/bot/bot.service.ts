@@ -53,53 +53,53 @@ export class BotService {
 
     if (!scene.media) {
       await ctx.reply(text, extra);
-    }
-
-    if (scene.media.kind === MediaKind.Photo) {
-      await ctx.replyWithPhoto(
-        {
-          source: scene.media.path,
-        },
-        {
-          caption: text,
-          ...extra,
-        },
-      );
-      return;
-    } else if (scene.media.kind === MediaKind.Video) {
-      await ctx.replyWithVideo(
-        {
-          source: scene.media.path,
-        },
-        {
-          caption: text,
-          ...extra,
-        },
-      );
-      return;
-    } else if (scene.media.kind === MediaKind.Audio) {
-      await ctx.replyWithAudio(
-        {
-          source: scene.media.path,
-        },
-        {
-          caption: text,
-          ...extra,
-        },
-      );
-      return;
-    } else if (scene.media.kind === MediaKind.Gif) {
-      await ctx.replyWithAnimation(
-        {
-          source: scene.media.path,
-        },
-        {
-          caption: text,
-          ...extra,
-        },
-      );
     } else {
-      throw new UnsupportedMediaKindException(scene.media.kind);
+      if (scene.media.kind === MediaKind.Photo) {
+        await ctx.replyWithPhoto(
+          {
+            source: scene.media.path,
+          },
+          {
+            caption: text,
+            ...extra,
+          },
+        );
+        return;
+      } else if (scene.media.kind === MediaKind.Video) {
+        await ctx.replyWithVideo(
+          {
+            source: scene.media.path,
+          },
+          {
+            caption: text,
+            ...extra,
+          },
+        );
+        return;
+      } else if (scene.media.kind === MediaKind.Audio) {
+        await ctx.replyWithAudio(
+          {
+            source: scene.media.path,
+          },
+          {
+            caption: text,
+            ...extra,
+          },
+        );
+        return;
+      } else if (scene.media.kind === MediaKind.Gif) {
+        await ctx.replyWithAnimation(
+          {
+            source: scene.media.path,
+          },
+          {
+            caption: text,
+            ...extra,
+          },
+        );
+      } else {
+        throw new UnsupportedMediaKindException(scene.media.kind);
+      }
     }
 
     for (const text of otherText) {
