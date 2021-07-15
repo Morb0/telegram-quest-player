@@ -36,8 +36,12 @@ export class BotService {
 
   async replyScene(ctx: Context): Promise<void> {
     const MAX_MESSAGE_LENGTH = 4096;
+    const MAX_MESSAGE_WITH_CAPTION_LENGTH = 1024;
     const scene = this.playerService.getScene();
-    const [text, ...otherText] = chunkString(scene.text, MAX_MESSAGE_LENGTH);
+    const chunkSize = scene.media
+      ? MAX_MESSAGE_WITH_CAPTION_LENGTH
+      : MAX_MESSAGE_LENGTH;
+    const [text, ...otherText] = chunkString(scene.text, chunkSize);
     const extra: ExtraReplyMessage = {
       parse_mode: 'MarkdownV2',
     };
