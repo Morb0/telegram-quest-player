@@ -5,6 +5,7 @@ import { ExtraReplyMessage } from 'telegraf/typings/telegram-types';
 import { MediaKind } from '../common/enums/media-kind.enum';
 import { PlayerService } from '../player/player.service';
 import { UnsupportedMediaKindException } from './exceptions/unsupported-media-kind.exception';
+import { chunkString } from './utils/chunk-string.util';
 
 @Injectable()
 export class BotService {
@@ -34,7 +35,9 @@ export class BotService {
   }
 
   async replyScene(ctx: Context): Promise<void> {
+    const MAX_MESSAGE_LENGTH = 4096;
     const scene = this.playerService.getScene();
+    const [text, ...otherText] = chunkString(scene.text, MAX_MESSAGE_LENGTH);
     const extra: ExtraReplyMessage = {
       parse_mode: 'MarkdownV2',
     };
@@ -48,62 +51,59 @@ export class BotService {
       extra.reply_markup = Markup.keyboard(buttons).reply_markup;
     }
 
-    if (scene.media) {
-      if (scene.media.kind === MediaKind.Photo) {
-        await ctx.replyWithPhoto(
-          {
-            source: scene.media.path,
-          },
-          {
-            caption: scene.text,
-            ...extra,
-          },
-        );
-        return;
-      }
+    if (!scene.media) {
+      await ctx.reply(text, extra);
+    }
 
-      if (scene.media.kind === MediaKind.Video) {
-        await ctx.replyWithVideo(
-          {
-            source: scene.media.path,
-          },
-          {
-            caption: scene.text,
-            ...extra,
-          },
-        );
-        return;
-      }
-
-      if (scene.media.kind === MediaKind.Audio) {
-        await ctx.replyWithAudio(
-          {
-            source: scene.media.path,
-          },
-          {
-            caption: scene.text,
-            ...extra,
-          },
-        );
-        return;
-      }
-
-      if (scene.media.kind === MediaKind.Gif) {
-        await ctx.replyWithAnimation(
-          {
-            source: scene.media.path,
-          },
-          {
-            caption: scene.text,
-            ...extra,
-          },
-        );
-        return;
-      }
-
+    if (scene.media.kind === MediaKind.Photo) {
+      await ctx.replyWithPhoto(
+        {
+          source: scene.media.path,
+        },
+        {
+          caption: text,
+          ...extra,
+        },
+      );
+      return;
+    } else if (scene.media.kind === MediaKind.Video) {
+      await ctx.replyWithVideo(
+        {
+          source: scene.media.path,
+        },
+        {
+          caption: text,
+          ...extra,
+        },
+      );
+      return;
+    } else if (scene.media.kind === MediaKind.Audio) {
+      await ctx.replyWithAudio(
+        {
+          source: scene.media.path,
+        },
+        {
+          caption: text,
+          ...extra,
+        },
+      );
+      return;
+    } else if (scene.media.kind === MediaKind.Gif) {
+      await ctx.replyWithAnimation(
+        {
+          source: scene.media.path,
+        },
+        {
+          caption: text,
+          ...extra,
+        },
+      );
+    } else {
       throw new UnsupportedMediaKindException(scene.media.kind);
     }
 
-    await ctx.reply(scene.text, extra);
+    for (const text of otherText) {
+      await ctx.reply(text);
+    }
   }
 }

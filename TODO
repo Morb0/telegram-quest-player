@@ -2,3 +2,4 @@
 - Add error when scene not ready
 - Remove action buttons text parsing from modal text
 - Add support for text input modals
++ Add separating messages if message text too big (>4096 symbols)
