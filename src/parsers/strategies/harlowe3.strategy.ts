@@ -6,7 +6,7 @@ import { Scene } from '../../common/interfaces/scene.interface';
 import { ParserStrategy } from '../interfaces/parser-strategy.interface';
 import { getCSSSelector } from '../utils/css-selector.util';
 import { extractMediaFromDom } from '../utils/dom-media-extractor.util';
-import { sanitizeTextForMarkup } from '../utils/markup-sanitize.util';
+import { escapeTextForMarkup } from '../utils/markup-escape.util';
 
 export class Harlowe3Strategy implements ParserStrategy {
   private $passage: Element;
@@ -75,7 +75,7 @@ export class Harlowe3Strategy implements ParserStrategy {
       .replace(/<\/?b>/g, '*')
       .replace(/<\/?i>/g, '_')
       .replace(/<\/?s>/g, '~');
-    this.$passage.textContent = sanitizeTextForMarkup(
+    this.$passage.textContent = escapeTextForMarkup(
       this.$passage.textContent,
     );
   }

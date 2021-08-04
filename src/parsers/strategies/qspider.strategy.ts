@@ -8,7 +8,7 @@ import { Scene } from '../../common/interfaces/scene.interface';
 import { ParserStrategy } from '../interfaces/parser-strategy.interface';
 import { getCSSSelector } from '../utils/css-selector.util';
 import { extractMediaFromDom } from '../utils/dom-media-extractor.util';
-import { sanitizeTextForMarkup } from '../utils/markup-sanitize.util';
+import { escapeTextForMarkup } from '../utils/markup-escape.util';
 
 export class QSpiderStrategy implements ParserStrategy {
   private menuParser: QSpiderMenuParser;
@@ -212,7 +212,7 @@ export class QSpiderGameParser {
       .replace(/<\/?i>/g, '_')
       .replace(/<\/?s>/g, '~')
       .replace(/<\/?a.*?>/g, '*');
-    this.$mainDock.textContent = sanitizeTextForMarkup(
+    this.$mainDock.textContent = escapeTextForMarkup(
       this.$mainDock.textContent,
     );
   }
@@ -253,7 +253,7 @@ export class QSpiderModalParser {
     const content = this.$modalWindow.querySelector(
       '.rcs-inner-container>div',
     ).textContent;
-    return sanitizeTextForMarkup(content);
+    return escapeTextForMarkup(content);
   }
   
   private getChoicesOrClose(): ButtonChoice[] {
