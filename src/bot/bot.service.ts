@@ -41,7 +41,7 @@ export class BotService {
     const chunkSize = scene.media
       ? MAX_MESSAGE_WITH_CAPTION_LENGTH
       : MAX_MESSAGE_LENGTH;
-    const sceneText = scene.text === '' ? '-' : scene.text;
+    const sceneText = scene.text === '' ? '\\-' : scene.text;
     const [text, ...otherText] = chunkString(sceneText, chunkSize);
     const extra: ExtraReplyMessage = {
       parse_mode: 'MarkdownV2',
