@@ -138,7 +138,7 @@ export class QSpiderGameParser {
     const $links = this.$mainDock.querySelectorAll('a');
     return Array.from<Element>($links).map((el, idx) => {
       const command = `/_${++idx}`;
-      el.textContent = `${command} ${el.textContent}`;
+      el.textContent = `${command} ${el.textContent.trim()}`;
       return {
         command,
         selector: getCSSSelector(el),
@@ -166,7 +166,7 @@ export class QSpiderGameParser {
   private actionButtonsToChoices($container: Element): ButtonChoice[] {
     const $btns = $container.querySelectorAll('[class*=ActionButton]');
     return Array.from<Element>($btns).map((el) => ({
-      text: el.textContent,
+      text: el.textContent.trim(),
       selector: getCSSSelector(el),
     }));
   }
@@ -231,7 +231,7 @@ export class QSpiderModalParser {
 
   parse(): Scene {
     const text = this.getText();
-    const buttonChoices = this.getChoices();
+    const buttonChoices = this.getChoicesOrClose();
     const media = this.getMedia();
     return {
       text,
@@ -255,13 +255,29 @@ export class QSpiderModalParser {
     ).textContent;
     return sanitizeTextForMarkup(content);
   }
+  
+  private getChoicesOrClose(): ButtonChoice[] {
+	  const customChoices = this.getChoices();
+	  if (!customChoices.length) {
+		  return [this.getCloseAsChoice()];
+	  }
+	  return customChoices;
+  }
 
   private getChoices(): ButtonChoice[] {
     const $btns = this.$modalWindow.querySelectorAll('[class*=-Button]');
     return Array.from<Element>($btns).map((el) => ({
-      text: el.textContent,
+      text: el.textContent.trim(),
       selector: getCSSSelector(el),
     }));
+  }
+  
+  private getCloseAsChoice(): ButtonChoice {
+	const $closeBtn = this.$modalWindow.querySelector('[class*=-CloseButton ]');
+	return {
+	  text: 'X',
+      selector: getCSSSelector($closeBtn),
+	}  
   }
 
   private getMedia(): Media | null {
