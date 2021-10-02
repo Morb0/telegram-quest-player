@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { TelegrafModule } from 'nestjs-telegraf';
 
 import { PlayerModule } from '../player/player.module';
-import { BotService } from './bot.service';
-import { BotUpdate } from './bot.update';
+import { TelegramService } from './telegram.service';
+import { TelegramUpdate } from './telegram.update';
 
 @Module({
   imports: [
@@ -16,6 +16,6 @@ import { BotUpdate } from './bot.update';
     }),
     PlayerModule,
   ],
-  providers: [BotUpdate, BotService],
+  providers: [TelegramUpdate, TelegramService],
 })
-export class BotModule {}
+export class TelegramModule {}

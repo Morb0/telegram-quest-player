@@ -1,11 +1,11 @@
 import { Command, Ctx, On, Start, Update } from 'nestjs-telegraf';
 import { Context } from 'telegraf';
 
-import { BotService } from './bot.service';
+import { TelegramService } from './telegram.service';
 
 @Update()
-export class BotUpdate {
-  constructor(private readonly botService: BotService) {}
+export class TelegramUpdate {
+  constructor(private readonly botService: TelegramService) {}
 
   @Start()
   async onStart(@Ctx() ctx: Context): Promise<void> {

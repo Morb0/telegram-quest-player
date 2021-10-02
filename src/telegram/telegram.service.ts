@@ -8,7 +8,7 @@ import { UnsupportedMediaKindException } from './exceptions/unsupported-media-ki
 import { chunkString } from './utils/chunk-string.util';
 
 @Injectable()
-export class BotService {
+export class TelegramService {
   constructor(private readonly playerService: PlayerService) {}
 
   async handleUserText(ctx: Context): Promise<void> {
