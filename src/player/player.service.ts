@@ -13,6 +13,10 @@ export class PlayerService implements OnModuleInit {
   private readonly localServerUrl = 'http://localhost:3000';
   private scene: Scene;
 
+  get currentScene(): Scene {
+    return this.scene;
+  }
+
   constructor(
     @Inject(PARSER) private readonly parserStrategy: ParserStrategy,
     private readonly browserService: BrowserService,
@@ -28,45 +32,45 @@ export class PlayerService implements OnModuleInit {
     await this.browserService.openUrl(this.localServerUrl);
   }
 
-  getScene(): Scene {
-    return this.scene;
+  isButtonChoice(text: string): boolean {
+    return Boolean(this.findButtonChoice(text));
   }
 
   async chooseByButton(text: string): Promise<void> {
-    const choice = this.findChoiceButton(text);
+    const choice = this.findButtonChoice(text);
+    if (!choice) {
+      throw new ButtonChoiceNotFoundException(text);
+    }
+
     await this.browserService.clickBySelector(choice.selector);
     await this.browserService.page.waitForSelector('[class*=MainFrame]');
     await this.parseScene();
   }
 
-  private findChoiceButton(text: string): ButtonChoice {
-    const foundChoice = this.scene.buttonChoices.find(
-      (choice) => choice.text === text,
+  private findButtonChoice(text: string): ButtonChoice | undefined {
+    return this.scene.buttonChoices.find((choice) => choice.text === text);
+  }
+
+  isCommandChoice(text: string): boolean {
+    return Boolean(
+      this.scene.commandChoices.find((choice) => choice.command === text),
     );
-
-    if (!foundChoice) {
-      throw new ButtonChoiceNotFoundException(text);
-    }
-
-    return foundChoice;
   }
 
   async chooseByCommand(command: string): Promise<void> {
-    const choice = this.findChoiceCommand(command);
+    const choice = this.findCommandChoice(command);
+    if (!choice) {
+      throw new ButtonChoiceNotFoundException(command);
+    }
+
     await this.browserService.clickBySelector(choice.selector);
     await this.parseScene();
   }
 
-  private findChoiceCommand(command: string): CommandChoice {
-    const foundChoice = this.scene.commandChoices.find(
+  private findCommandChoice(command: string): CommandChoice | undefined {
+    return this.scene.commandChoices.find(
       (choice) => choice.command === command,
     );
-
-    if (!foundChoice) {
-      throw new ButtonChoiceNotFoundException(command);
-    }
-
-    return foundChoice;
   }
 
   private async parseScene(): Promise<void> {

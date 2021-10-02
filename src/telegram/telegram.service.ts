@@ -13,17 +13,12 @@ export class TelegramService {
 
   async handleUserText(ctx: Context): Promise<void> {
     const text = (ctx.message as any).text;
-    const { commandChoices, buttonChoices } = this.playerService.getScene();
 
-    const isButtonChoice = buttonChoices.find((choice) => choice.text === text);
-    if (isButtonChoice) {
+    if (this.playerService.isButtonChoice(text)) {
       return this.playerService.chooseByButton(text);
     }
 
-    const isCommandChoice = commandChoices.find(
-      (choice) => choice.command === text,
-    );
-    if (isCommandChoice) {
+    if (this.playerService.isCommandChoice(text)) {
       return this.playerService.chooseByCommand(text);
     }
 
@@ -37,7 +32,7 @@ export class TelegramService {
   async replyScene(ctx: Context): Promise<void> {
     const MAX_MESSAGE_LENGTH = 4096;
     const MAX_MESSAGE_WITH_CAPTION_LENGTH = 1024;
-    const scene = this.playerService.getScene();
+    const scene = this.playerService.currentScene;
     const chunkSize = scene.media
       ? MAX_MESSAGE_WITH_CAPTION_LENGTH
       : MAX_MESSAGE_LENGTH;
