@@ -75,9 +75,7 @@ export class Harlowe3Strategy implements ParserStrategy {
       .replace(/<\/?b>/g, '*')
       .replace(/<\/?i>/g, '_')
       .replace(/<\/?s>/g, '~');
-    this.$passage.textContent = escapeTextForMarkup(
-      this.$passage.textContent,
-    );
+    this.$passage.textContent = escapeTextForMarkup(this.$passage.textContent);
   }
 
   private getPassageText(): string {
