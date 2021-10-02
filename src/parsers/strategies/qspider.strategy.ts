@@ -99,9 +99,14 @@ export class QSpiderGameParser {
     this.$leftDock = this.getLeftDock();
     this.$rightDock = this.getRightDock();
     const modalParser = new QSpiderModalParser(this.dom);
+    const popupParser = new QSpiderPopupMenuParser(this.dom);
 
     if (modalParser.isModalWindowExist()) {
       return modalParser.parse();
+    }
+
+    if (popupParser.isPopupMenuExist()) {
+      return popupParser.parse();
     }
 
     const media = this.getMediaByPriorityIfExist();
@@ -255,13 +260,13 @@ export class QSpiderModalParser {
     ).textContent;
     return escapeTextForMarkup(content);
   }
-  
+
   private getChoicesOrClose(): ButtonChoice[] {
-	  const customChoices = this.getChoices();
-	  if (!customChoices.length) {
-		  return [this.getCloseAsChoice()];
-	  }
-	  return customChoices;
+    const customChoices = this.getChoices();
+    if (!customChoices.length) {
+      return [this.getCloseAsChoice()];
+    }
+    return customChoices;
   }
 
   private getChoices(): ButtonChoice[] {
@@ -271,16 +276,39 @@ export class QSpiderModalParser {
       selector: getCSSSelector(el),
     }));
   }
-  
+
   private getCloseAsChoice(): ButtonChoice {
-	const $closeBtn = this.$modalWindow.querySelector('[class*=-CloseButton ]');
-	return {
-	  text: 'X',
+    const $closeBtn = this.$modalWindow.querySelector('[class*=-CloseButton ]');
+    return {
+      text: 'X',
       selector: getCSSSelector($closeBtn),
-	}  
+    };
   }
 
   private getMedia(): Media | null {
     return extractMediaFromDom(this.$modalWindow);
+  }
+}
+
+export class QSpiderPopupMenuParser {
+  private $popupMenu: Element;
+
+  constructor(private dom: JSDOM) {
+    this.$popupMenu = this.getPopupMenu();
+  }
+  isPopupMenuExist(): boolean {
+    return !!this.getPopupMenu();
+  }
+
+  parse(): Scene {
+    return {
+      text: '',
+      commandChoices: [],
+      buttonChoices: [],
+    };
+  }
+
+  private getPopupMenu(): Element | null {
+    return this.dom.window.document.querySelector('[class*=MenuWrapper]');
   }
 }
