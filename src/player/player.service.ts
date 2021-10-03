@@ -3,8 +3,9 @@ import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { BrowserService } from '../browser/browser.service';
 import { PARSER_TOKEN } from '../parser/constants';
 import { ParserStrategy } from '../parser/interfaces/parser-strategy.interface';
-import { ButtonChoiceNotFoundException } from './exceptions/button-choice-not-found.exception';
-import { Choice } from './interfaces/choice.interface';
+import { ActionType } from './enums/action-type.enum';
+import { ActionNotFoundException } from './exceptions/action-not-found.exception';
+import { Choice, Input } from './interfaces/action.interface';
 import { Scene } from './interfaces/scene.interface';
 
 @Injectable()
@@ -35,19 +36,52 @@ export class PlayerService implements OnModuleInit {
     return Boolean(this.findChoice(text));
   }
 
+  isInputExist(): boolean {
+    return Boolean(this.findInput());
+  }
+
   async choose(text: string): Promise<void> {
     const choice = this.findChoice(text);
     if (!choice) {
-      throw new ButtonChoiceNotFoundException(text);
+      throw new ActionNotFoundException();
     }
 
-    await this.browserService.clickBySelector(choice.selector);
-    await this.browserService.page.waitForSelector(this.parserStrategy.anchor);
-    await this.parseScene();
+    await this.makeAction(() =>
+      this.browserService.clickBySelector(choice.selector),
+    );
+  }
+
+  async input(text: string): Promise<void> {
+    const input = this.findInput();
+    if (!input) {
+      throw new ActionNotFoundException();
+    }
+
+    await this.makeAction(() =>
+      this.browserService.setTextToInputBySelector(input.selector, text),
+    );
   }
 
   private findChoice(text: string): Choice | undefined {
-    return this.scene.choices.find((choice) => choice.text === text);
+    return this.scene.actions.find(
+      (action) => action.type === ActionType.Choice && action.text === text,
+    ) as Choice;
+  }
+
+  private findInput(): Input | undefined {
+    return this.scene.actions.find(
+      (action) => action.type === ActionType.Input,
+    ) as Input;
+  }
+
+  private async makeAction(actionFn: () => Promise<void>): Promise<void> {
+    await actionFn();
+    await this.waitAnchor();
+    await this.parseScene();
+  }
+
+  private async waitAnchor(): Promise<void> {
+    await this.browserService.page.waitForSelector(this.parserStrategy.anchor);
   }
 
   private async parseScene(): Promise<void> {

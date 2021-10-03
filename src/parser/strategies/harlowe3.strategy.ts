@@ -1,6 +1,7 @@
 import { JSDOM } from 'jsdom';
 
-import { Choice } from '../../player/interfaces/choice.interface';
+import { ActionType } from '../../player/enums/action-type.enum';
+import { Choice } from '../../player/interfaces/action.interface';
 import { Media } from '../../player/interfaces/media.interface';
 import { Scene } from '../../player/interfaces/scene.interface';
 import { ParserStrategy } from '../interfaces/parser-strategy.interface';
@@ -37,7 +38,7 @@ class Harlowe3Strategy {
     return {
       text,
       media,
-      choices,
+      actions: choices,
     };
   }
 
@@ -53,6 +54,7 @@ class Harlowe3Strategy {
   private getPassageChoices(): Choice[] {
     const $links = this.getPassageLinks();
     return $links.map((el) => ({
+      type: ActionType.Choice,
       text: el.textContent,
       selector: getCSSSelector(el),
     }));

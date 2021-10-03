@@ -1,7 +1,8 @@
 import { JSDOM } from 'jsdom';
 
+import { ActionType } from '../../player/enums/action-type.enum';
 import { MediaKind } from '../../player/enums/media-kind.enum';
-import { Choice } from '../../player/interfaces/choice.interface';
+import { Action, Choice } from '../../player/interfaces/action.interface';
 import { Media } from '../../player/interfaces/media.interface';
 import { Scene } from '../../player/interfaces/scene.interface';
 import { ParserStrategy } from '../interfaces/parser-strategy.interface';
@@ -53,7 +54,7 @@ class QSpiderMenuParser {
     const choices = this.getGameChoices();
     return {
       text,
-      choices,
+      actions: choices,
     };
   }
 
@@ -75,6 +76,7 @@ class QSpiderMenuParser {
 
   private getGameChoices(): Choice[] {
     return this.$games.map((el) => ({
+      type: ActionType.Choice,
       text: this.getGameTitle(el),
       selector: getCSSSelector(el),
     }));
@@ -123,7 +125,7 @@ export class QSpiderGameParser {
     return {
       text,
       media,
-      choices,
+      actions: choices,
     };
   }
 
@@ -160,6 +162,7 @@ export class QSpiderGameParser {
       const command = `/_${++idx}`;
       el.textContent = `${command} ${el.textContent.trim()}`;
       return {
+        type: ActionType.Choice,
         text: command,
         selector: getCSSSelector(el),
       };
@@ -178,6 +181,7 @@ export class QSpiderGameParser {
   private actionButtonsToChoices($container: Element): Choice[] {
     const $btns = $container.querySelectorAll('[class*=ActionButton]');
     return Array.from<Element>($btns).map((el) => ({
+      type: ActionType.Choice,
       text: el.textContent.trim(),
       selector: getCSSSelector(el),
     }));
@@ -243,12 +247,13 @@ export class QSpiderModalParser {
 
   parse(): Scene {
     const text = this.getText();
-    const choices = this.getChoicesOrClose();
+    const actions = this.getActions();
     const media = this.getMedia();
+
     return {
       text,
       media,
-      choices,
+      actions,
     };
   }
 
@@ -256,15 +261,31 @@ export class QSpiderModalParser {
     return this.dom.window.document.querySelector('[class*=ModalContainer]');
   }
 
-  private getTextInput(): Element | null {
-    return this.$modalWindow.querySelector('[class*=TextInput]');
-  }
-
   private getText(): string {
     const content = this.$modalWindow.querySelector(
       '.rcs-inner-container>div',
     ).textContent;
     return escapeTextForMarkup(content);
+  }
+
+  private getActions(): Action[] {
+    const actions = [];
+
+    const $input = this.getTextInput();
+    if ($input) {
+      actions.push({
+        type: ActionType.Input,
+        selector: getCSSSelector($input),
+      });
+    }
+
+    actions.push(...this.getChoicesOrClose());
+
+    return actions;
+  }
+
+  private getTextInput(): Element | null {
+    return this.$modalWindow.querySelector('[class*=TextInput]');
   }
 
   private getChoicesOrClose(): Choice[] {
@@ -278,6 +299,7 @@ export class QSpiderModalParser {
   private getChoices(): Choice[] {
     const $btns = this.$modalWindow.querySelectorAll('[class*=-Button]');
     return Array.from<Element>($btns).map((el) => ({
+      type: ActionType.Choice,
       text: el.textContent.trim(),
       selector: getCSSSelector(el),
     }));
@@ -286,6 +308,7 @@ export class QSpiderModalParser {
   private getCloseAsChoice(): Choice {
     const $closeBtn = this.$modalWindow.querySelector('[class*=-CloseButton ]');
     return {
+      type: ActionType.Choice,
       text: 'X',
       selector: getCSSSelector($closeBtn),
     };
@@ -309,7 +332,7 @@ export class QSpiderPopupMenuParser {
   parse(): Scene {
     return {
       text: '',
-      choices: [],
+      actions: [],
     };
   }
 

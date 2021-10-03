@@ -19,6 +19,17 @@ export class BrowserService {
     await this.page.click(selector);
   }
 
+  async setTextToInputBySelector(
+    selector: string,
+    value: string,
+  ): Promise<void> {
+    await this.page.$eval(
+      selector,
+      (el, value) => ((el as any).value = value),
+      value,
+    );
+  }
+
   async getPageHtml(): Promise<string> {
     return this.page.evaluate(() => document.querySelector('*').outerHTML);
   }

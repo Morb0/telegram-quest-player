@@ -11,8 +11,8 @@ export default {
 class CustomStrategy {
   parse(): Scene {
     return {
-      text: 'Empty',
-      choices: [],
+      text: 'Custom',
+      actions: [],
     };
   }
 }
