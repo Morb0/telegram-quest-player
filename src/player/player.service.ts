@@ -1,10 +1,11 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 
 import { BrowserService } from '../browser/browser.service';
-import { Choice } from '../common/interfaces/choice.interface';
-import { Scene } from '../common/interfaces/scene.interface';
-import { ParserService } from '../parser/parser.service';
+import { PARSER_TOKEN } from '../parser/constants';
+import { ParserStrategy } from '../parser/interfaces/parser-strategy.interface';
 import { ButtonChoiceNotFoundException } from './exceptions/button-choice-not-found.exception';
+import { Choice } from './interfaces/choice.interface';
+import { Scene } from './interfaces/scene.interface';
 
 @Injectable()
 export class PlayerService implements OnModuleInit {
@@ -13,7 +14,7 @@ export class PlayerService implements OnModuleInit {
 
   constructor(
     private readonly browserService: BrowserService,
-    private readonly parserService: ParserService,
+    @Inject(PARSER_TOKEN) private readonly parserStrategy: ParserStrategy,
   ) {}
 
   get currentScene(): Scene {
@@ -51,6 +52,6 @@ export class PlayerService implements OnModuleInit {
 
   private async parseScene(): Promise<void> {
     const content = await this.browserService.getPageHtml();
-    this.scene = this.parserService.parse(content);
+    this.scene = this.parserStrategy.parse(content);
   }
 }

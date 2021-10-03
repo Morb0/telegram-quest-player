@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Context, Markup } from 'telegraf';
 import { ExtraReplyMessage } from 'telegraf/typings/telegram-types';
 
-import { MediaKind } from '../common/enums/media-kind.enum';
+import { MediaKind } from '../player/enums/media-kind.enum';
 import { PlayerService } from '../player/player.service';
 import { UnsupportedMediaKindException } from './exceptions/unsupported-media-kind.exception';
 import { chunkString } from './utils/chunk-string.util';
@@ -29,7 +29,7 @@ export class TelegramService {
     const MAX_MESSAGE_LENGTH = 4096;
     const MAX_MESSAGE_WITH_CAPTION_LENGTH = 1024;
     const scene = this.playerService.currentScene;
-    const chunkSize = scene.media
+    const chunkSize = scene?.media
       ? MAX_MESSAGE_WITH_CAPTION_LENGTH
       : MAX_MESSAGE_LENGTH;
     const sceneText = scene.text === '' ? '\\-' : scene.text;

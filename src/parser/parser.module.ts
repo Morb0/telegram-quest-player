@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 
-import { ParserService } from './parser.service';
+import { parserProvider } from './providers';
+import { StrategiesLoader } from './strategies-loader';
 
 @Module({
-  providers: [ParserService],
-  exports: [ParserService],
+  providers: [...StrategiesLoader.loadProviders(), parserProvider],
+  exports: [parserProvider],
 })
 export class ParserModule {}

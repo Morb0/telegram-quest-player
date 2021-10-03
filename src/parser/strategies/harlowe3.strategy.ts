@@ -1,23 +1,30 @@
 import { JSDOM } from 'jsdom';
 
-import { Choice } from '../../common/interfaces/choice.interface';
-import { Media } from '../../common/interfaces/media.interface';
-import { Scene } from '../../common/interfaces/scene.interface';
-import { ParserStrategy } from '../parser-strategy.abstract';
+import { Choice } from '../../player/interfaces/choice.interface';
+import { Media } from '../../player/interfaces/media.interface';
+import { Scene } from '../../player/interfaces/scene.interface';
+import { ParserStrategy } from '../interfaces/parser-strategy.interface';
 import { getCSSSelector } from '../utils/css-selector.util';
 import { extractMediaFromDom } from '../utils/dom-media-extractor.util';
 import { escapeTextForMarkup } from '../utils/markup-escape.util';
 
-export class Harlowe3Strategy extends ParserStrategy {
+export default {
+  name: 'harlowe3',
+  parse: (content) => {
+    return new Harlowe3Strategy(content).parse();
+  },
+} as ParserStrategy;
+
+class Harlowe3Strategy {
+  private readonly dom: JSDOM;
   private $passage: Element;
 
-  constructor() {
-    super('harlowe3');
+  constructor(content: string) {
+    this.dom = new JSDOM(content);
   }
 
-  parse(content: string): Scene {
-    const dom = new JSDOM(content);
-    this.$passage = dom.window.document.querySelector('tw-passage');
+  parse(): Scene {
+    this.$passage = this.dom.window.document.querySelector('tw-passage');
 
     this.unwrapFromPassageTransitionContainerIfExist();
     const choices = this.getPassageChoices();

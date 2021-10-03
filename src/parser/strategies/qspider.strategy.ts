@@ -1,23 +1,31 @@
 import { JSDOM } from 'jsdom';
 
-import { MediaKind } from '../../common/enums/media-kind.enum';
-import { Choice } from '../../common/interfaces/choice.interface';
-import { Media } from '../../common/interfaces/media.interface';
-import { Scene } from '../../common/interfaces/scene.interface';
-import { ParserStrategy } from '../parser-strategy.abstract';
+import { MediaKind } from '../../player/enums/media-kind.enum';
+import { Choice } from '../../player/interfaces/choice.interface';
+import { Media } from '../../player/interfaces/media.interface';
+import { Scene } from '../../player/interfaces/scene.interface';
+import { ParserStrategy } from '../interfaces/parser-strategy.interface';
 import { getCSSSelector } from '../utils/css-selector.util';
 import { extractMediaFromDom } from '../utils/dom-media-extractor.util';
 import { escapeTextForMarkup } from '../utils/markup-escape.util';
 
-export class QSpiderStrategy extends ParserStrategy {
-  constructor() {
-    super('qspider');
+export default {
+  name: 'qspider',
+  parse(content) {
+    return new QSpiderStrategy(content).parse();
+  },
+} as ParserStrategy;
+
+class QSpiderStrategy {
+  private readonly dom: JSDOM;
+
+  constructor(content: string) {
+    this.dom = new JSDOM(content);
   }
 
-  parse(content: string): Scene {
-    const dom = new JSDOM(content);
-    const menuParser = new QSpiderMenuParser(dom);
-    const gameParser = new QSpiderGameParser(dom);
+  parse(): Scene {
+    const menuParser = new QSpiderMenuParser(this.dom);
+    const gameParser = new QSpiderGameParser(this.dom);
 
     if (menuParser.isMainMenu()) {
       return menuParser.parse();

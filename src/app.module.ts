@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { BrowserModule } from './browser/browser.module';
-import { ParsersModule } from './parsers/parsers.module';
+import { ParserModule } from './parser/parser.module';
 import { PlayerModule } from './player/player.module';
 import { TelegramModule } from './telegram/telegram.module';
 
@@ -11,10 +11,10 @@ import { TelegramModule } from './telegram/telegram.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TelegramModule,
-    PlayerModule,
     BrowserModule,
-    ParsersModule,
+    ParserModule,
+    PlayerModule,
+    TelegramModule,
   ],
 })
 export class AppModule {}

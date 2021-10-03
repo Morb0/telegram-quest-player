@@ -1,13 +1,18 @@
-import { Scene } from '../../common/interfaces/scene.interface';
-import { ParserStrategy } from '../parser-strategy.abstract';
+import { Scene } from '../../player/interfaces/scene.interface';
+import { ParserStrategy } from '../interfaces/parser-strategy.interface';
 
-export class CustomStrategy extends ParserStrategy {
-  constructor() {
-    super('custom');
-  }
+export default {
+  name: 'custom',
+  parse() {
+    return new CustomStrategy().parse();
+  },
+} as ParserStrategy;
 
-  parse(content: string): Scene {
-    console.log(content.length);
-    return undefined;
+class CustomStrategy {
+  parse(): Scene {
+    return {
+      text: 'Empty',
+      choices: [],
+    };
   }
 }

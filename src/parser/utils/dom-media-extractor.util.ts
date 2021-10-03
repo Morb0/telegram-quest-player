@@ -1,7 +1,7 @@
 import * as path from 'path';
 
-import { MediaKind } from '../../common/enums/media-kind.enum';
-import { Media } from '../../common/interfaces/media.interface';
+import { MediaKind } from '../../player/enums/media-kind.enum';
+import { Media } from '../../player/interfaces/media.interface';
 
 export function extractMediaFromDom($el: Element): Media | null {
   const $img = $el.querySelector('img');
