@@ -22,7 +22,9 @@ export class TelegramService {
       }
 
       if (this.playerService.isChoiceExist(text)) {
-        return this.playerService.choose(text);
+        await this.playerService.choose(text);
+        await this.replyScene(ctx);
+        return;
       }
 
       if (this.playerService.isInputExist()) {
@@ -39,8 +41,9 @@ export class TelegramService {
     }
   }
 
-  async reset(): Promise<void> {
+  async reset(ctx: Context): Promise<void> {
     await this.playerService.startNewSession();
+    await this.replyScene(ctx);
   }
 
   async replyScene(ctx: Context): Promise<void> {

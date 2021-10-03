@@ -14,13 +14,11 @@ export class TelegramUpdate {
 
   @Command('reset')
   async onResetCommand(@Ctx() ctx: Context): Promise<void> {
-    await this.botService.reset();
-    await this.botService.replyScene(ctx);
+    await this.botService.reset(ctx);
   }
 
   @On('text')
   async onText(@Ctx() ctx: Context): Promise<void> {
     await this.botService.handleUserText(ctx);
-    await this.botService.replyScene(ctx);
   }
 }
