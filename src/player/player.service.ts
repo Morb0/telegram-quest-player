@@ -1,11 +1,9 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import { BrowserService } from '../browser/browser.service';
-import { ButtonChoice } from '../common/interfaces/button-choice.interface';
-import { CommandChoice } from '../common/interfaces/command-choice.interface';
+import { Choice } from '../common/interfaces/choice.interface';
 import { Scene } from '../common/interfaces/scene.interface';
-import { PARSER } from '../parsers/constants';
-import { ParserStrategy } from '../parsers/interfaces/parser-strategy.interface';
+import { ParserService } from '../parser/parser.service';
 import { ButtonChoiceNotFoundException } from './exceptions/button-choice-not-found.exception';
 
 @Injectable()
@@ -13,14 +11,14 @@ export class PlayerService implements OnModuleInit {
   private readonly localServerUrl = 'http://localhost:3000';
   private scene: Scene;
 
+  constructor(
+    private readonly browserService: BrowserService,
+    private readonly parserService: ParserService,
+  ) {}
+
   get currentScene(): Scene {
     return this.scene;
   }
-
-  constructor(
-    @Inject(PARSER) private readonly parserStrategy: ParserStrategy,
-    private readonly browserService: BrowserService,
-  ) {}
 
   async onModuleInit(): Promise<void> {
     await this.browserService.start();
@@ -32,49 +30,27 @@ export class PlayerService implements OnModuleInit {
     await this.browserService.openUrl(this.localServerUrl);
   }
 
-  isButtonChoice(text: string): boolean {
-    return Boolean(this.findButtonChoice(text));
+  isChoiceExist(text: string): boolean {
+    return Boolean(this.findChoice(text));
   }
 
-  async chooseByButton(text: string): Promise<void> {
-    const choice = this.findButtonChoice(text);
+  async choose(text: string): Promise<void> {
+    const choice = this.findChoice(text);
     if (!choice) {
       throw new ButtonChoiceNotFoundException(text);
     }
 
     await this.browserService.clickBySelector(choice.selector);
-    await this.browserService.page.waitForSelector('[class*=MainFrame]');
+    await this.browserService.page.waitForSelector('[class*=MainFrame]'); // REMOVE THIS! And make system for anchors
     await this.parseScene();
   }
 
-  private findButtonChoice(text: string): ButtonChoice | undefined {
-    return this.scene.buttonChoices.find((choice) => choice.text === text);
-  }
-
-  isCommandChoice(text: string): boolean {
-    return Boolean(
-      this.scene.commandChoices.find((choice) => choice.command === text),
-    );
-  }
-
-  async chooseByCommand(command: string): Promise<void> {
-    const choice = this.findCommandChoice(command);
-    if (!choice) {
-      throw new ButtonChoiceNotFoundException(command);
-    }
-
-    await this.browserService.clickBySelector(choice.selector);
-    await this.parseScene();
-  }
-
-  private findCommandChoice(command: string): CommandChoice | undefined {
-    return this.scene.commandChoices.find(
-      (choice) => choice.command === command,
-    );
+  private findChoice(text: string): Choice | undefined {
+    return this.scene.choices.find((choice) => choice.text === text);
   }
 
   private async parseScene(): Promise<void> {
     const content = await this.browserService.getPageHtml();
-    this.scene = this.parserStrategy.parse(content);
+    this.scene = this.parserService.parse(content);
   }
 }

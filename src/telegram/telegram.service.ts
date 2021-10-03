@@ -14,12 +14,8 @@ export class TelegramService {
   async handleUserText(ctx: Context): Promise<void> {
     const text = (ctx.message as any).text;
 
-    if (this.playerService.isButtonChoice(text)) {
-      return this.playerService.chooseByButton(text);
-    }
-
-    if (this.playerService.isCommandChoice(text)) {
-      return this.playerService.chooseByCommand(text);
+    if (this.playerService.isChoiceExist(text)) {
+      return this.playerService.choose(text);
     }
 
     // TODO: Custom text input
@@ -42,10 +38,10 @@ export class TelegramService {
       parse_mode: 'MarkdownV2',
     };
 
-    if (!scene.buttonChoices.length) {
+    if (!scene.choices.length) {
       extra.reply_markup = Markup.removeKeyboard().reply_markup;
     } else {
-      const buttons = scene.buttonChoices.map((choice) =>
+      const buttons = scene.choices.map((choice) =>
         Markup.button.text(choice.text),
       );
       extra.reply_markup = Markup.keyboard(buttons).reply_markup;

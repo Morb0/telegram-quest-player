@@ -1,29 +1,29 @@
 import { JSDOM } from 'jsdom';
 
 import { MediaKind } from '../../common/enums/media-kind.enum';
-import { ButtonChoice } from '../../common/interfaces/button-choice.interface';
-import { CommandChoice } from '../../common/interfaces/command-choice.interface';
+import { Choice } from '../../common/interfaces/choice.interface';
 import { Media } from '../../common/interfaces/media.interface';
 import { Scene } from '../../common/interfaces/scene.interface';
-import { ParserStrategy } from '../interfaces/parser-strategy.interface';
+import { ParserStrategy } from '../parser-strategy.abstract';
 import { getCSSSelector } from '../utils/css-selector.util';
 import { extractMediaFromDom } from '../utils/dom-media-extractor.util';
 import { escapeTextForMarkup } from '../utils/markup-escape.util';
 
-export class QSpiderStrategy implements ParserStrategy {
-  private menuParser: QSpiderMenuParser;
-  private gameParser: QSpiderGameParser;
+export class QSpiderStrategy extends ParserStrategy {
+  constructor() {
+    super('qspider');
+  }
 
   parse(content: string): Scene {
     const dom = new JSDOM(content);
-    this.menuParser = new QSpiderMenuParser(dom);
-    this.gameParser = new QSpiderGameParser(dom);
+    const menuParser = new QSpiderMenuParser(dom);
+    const gameParser = new QSpiderGameParser(dom);
 
-    if (this.menuParser.isMainMenu()) {
-      return this.menuParser.parse();
+    if (menuParser.isMainMenu()) {
+      return menuParser.parse();
     }
 
-    return this.gameParser.parse();
+    return gameParser.parse();
   }
 }
 
@@ -41,11 +41,10 @@ class QSpiderMenuParser {
   parse(): Scene {
     this.$games = this.getGames();
     const text = this.gamesInfoToText();
-    const buttonChoices = this.getGameChoices();
+    const choices = this.getGameChoices();
     return {
       text,
-      buttonChoices,
-      commandChoices: [],
+      choices,
     };
   }
 
@@ -65,7 +64,7 @@ class QSpiderMenuParser {
     return this.formatSceneText(text);
   }
 
-  private getGameChoices(): ButtonChoice[] {
+  private getGameChoices(): Choice[] {
     return this.$games.map((el) => ({
       text: this.getGameTitle(el),
       selector: getCSSSelector(el),
@@ -110,14 +109,12 @@ export class QSpiderGameParser {
     }
 
     const media = this.getMediaByPriorityIfExist();
-    const buttonChoices = this.getButtonChoices();
-    const commandChoices = this.makeCommandChoices();
+    const choices = this.getChoices();
     const text = this.getMainDockText();
     return {
       text,
       media,
-      buttonChoices,
-      commandChoices,
+      choices,
     };
   }
 
@@ -131,44 +128,45 @@ export class QSpiderGameParser {
     return this.dom.window.document.querySelector('[class*=BottomDock]');
   }
 
-  private getLeftDock(): Element | null {
+  private getLeftDock(): Element | undefined {
     return this.dom.window.document.querySelector('[class*=LeftDock]');
   }
 
-  private getRightDock(): Element | null {
+  private getRightDock(): Element | undefined {
     return this.dom.window.document.querySelector('[class*=RightDock]');
   }
 
-  private makeCommandChoices(): CommandChoice[] {
-    const $links = this.$mainDock.querySelectorAll('a');
-    return Array.from<Element>($links).map((el, idx) => {
-      const command = `/_${++idx}`;
-      el.textContent = `${command} ${el.textContent.trim()}`;
-      return {
-        command,
-        selector: getCSSSelector(el),
-      };
-    });
-  }
-
-  private getButtonChoices(): ButtonChoice[] {
+  private getChoices(): Choice[] {
     return [
+      ...this.makeCommandChoices(),
       ...this.getChoicesFromBottomDock(),
       ...this.getChoicesFromRightDock(),
       // TODO: Get action buttons from popups
     ];
   }
 
-  private getChoicesFromBottomDock(): ButtonChoice[] {
+  private makeCommandChoices(): Choice[] {
+    const $links = this.$mainDock.querySelectorAll('a');
+    return Array.from<Element>($links).map((el, idx) => {
+      const command = `/_${++idx}`;
+      el.textContent = `${command} ${el.textContent.trim()}`;
+      return {
+        text: command,
+        selector: getCSSSelector(el),
+      };
+    });
+  }
+
+  private getChoicesFromBottomDock(): Choice[] {
     return this.actionButtonsToChoices(this.$bottomDock);
   }
 
-  private getChoicesFromRightDock(): ButtonChoice[] {
+  private getChoicesFromRightDock(): Choice[] {
     if (!this.$rightDock) return [];
     return this.actionButtonsToChoices(this.$rightDock);
   }
 
-  private actionButtonsToChoices($container: Element): ButtonChoice[] {
+  private actionButtonsToChoices($container: Element): Choice[] {
     const $btns = $container.querySelectorAll('[class*=ActionButton]');
     return Array.from<Element>($btns).map((el) => ({
       text: el.textContent.trim(),
@@ -236,13 +234,12 @@ export class QSpiderModalParser {
 
   parse(): Scene {
     const text = this.getText();
-    const buttonChoices = this.getChoicesOrClose();
+    const choices = this.getChoicesOrClose();
     const media = this.getMedia();
     return {
       text,
       media,
-      buttonChoices,
-      commandChoices: [],
+      choices,
     };
   }
 
@@ -261,7 +258,7 @@ export class QSpiderModalParser {
     return escapeTextForMarkup(content);
   }
 
-  private getChoicesOrClose(): ButtonChoice[] {
+  private getChoicesOrClose(): Choice[] {
     const customChoices = this.getChoices();
     if (!customChoices.length) {
       return [this.getCloseAsChoice()];
@@ -269,7 +266,7 @@ export class QSpiderModalParser {
     return customChoices;
   }
 
-  private getChoices(): ButtonChoice[] {
+  private getChoices(): Choice[] {
     const $btns = this.$modalWindow.querySelectorAll('[class*=-Button]');
     return Array.from<Element>($btns).map((el) => ({
       text: el.textContent.trim(),
@@ -277,7 +274,7 @@ export class QSpiderModalParser {
     }));
   }
 
-  private getCloseAsChoice(): ButtonChoice {
+  private getCloseAsChoice(): Choice {
     const $closeBtn = this.$modalWindow.querySelector('[class*=-CloseButton ]');
     return {
       text: 'X',
@@ -303,8 +300,7 @@ export class QSpiderPopupMenuParser {
   parse(): Scene {
     return {
       text: '',
-      commandChoices: [],
-      buttonChoices: [],
+      choices: [],
     };
   }
 

@@ -1,22 +1,26 @@
 import { JSDOM } from 'jsdom';
 
-import { ButtonChoice } from '../../common/interfaces/button-choice.interface';
+import { Choice } from '../../common/interfaces/choice.interface';
 import { Media } from '../../common/interfaces/media.interface';
 import { Scene } from '../../common/interfaces/scene.interface';
-import { ParserStrategy } from '../interfaces/parser-strategy.interface';
+import { ParserStrategy } from '../parser-strategy.abstract';
 import { getCSSSelector } from '../utils/css-selector.util';
 import { extractMediaFromDom } from '../utils/dom-media-extractor.util';
 import { escapeTextForMarkup } from '../utils/markup-escape.util';
 
-export class Harlowe3Strategy implements ParserStrategy {
+export class Harlowe3Strategy extends ParserStrategy {
   private $passage: Element;
+
+  constructor() {
+    super('harlowe3');
+  }
 
   parse(content: string): Scene {
     const dom = new JSDOM(content);
     this.$passage = dom.window.document.querySelector('tw-passage');
 
     this.unwrapFromPassageTransitionContainerIfExist();
-    const buttonChoices = this.getPassageChoices();
+    const choices = this.getPassageChoices();
     this.removePassageLinks();
     this.removePassageSidebar();
     const media = this.getMediaIfExist();
@@ -26,8 +30,7 @@ export class Harlowe3Strategy implements ParserStrategy {
     return {
       text,
       media,
-      buttonChoices,
-      commandChoices: [],
+      choices,
     };
   }
 
@@ -40,7 +43,7 @@ export class Harlowe3Strategy implements ParserStrategy {
     }
   }
 
-  private getPassageChoices(): ButtonChoice[] {
+  private getPassageChoices(): Choice[] {
     const $links = this.getPassageLinks();
     return $links.map((el) => ({
       text: el.textContent,
