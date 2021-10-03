@@ -15,7 +15,7 @@ import {
 
 export default {
   name: 'qspider',
-  anchor: '[class*=MainFrame]',
+  anchor: '[class*=e1csenz80]',
   parse(content) {
     return new QSpiderStrategy(content).parse();
   },
@@ -47,7 +47,7 @@ class QSpiderMenuParser {
 
   isMainMenu(): boolean {
     return (
-      this.dom.window.document.querySelectorAll('[class*=GameSlots]').length > 0
+      this.dom.window.document.querySelectorAll('[class*=e1as4avk2]').length > 0
     );
   }
 
@@ -63,8 +63,8 @@ class QSpiderMenuParser {
 
   private getGames(): Element[] {
     return Array.from<Element>(
-      this.dom.window.document.querySelectorAll('[class*=GameSlot]'),
-    ).filter((elem) => !elem.className.includes('GameSlots'));
+      this.dom.window.document.querySelectorAll('[class*=e1as4avk2]'),
+    );
   }
 
   private gamesInfoToText(): string {
@@ -130,27 +130,31 @@ export class QSpiderGameParser {
   }
 
   private getMainDock(): Element {
-    return this.dom.window.document.querySelector(
-      '[class*=Panel-PanelWithBackground]',
-    );
+    return this.dom.window.document.querySelector('[class*=e1by9dh71]');
   }
 
   private getBottomDock(): Element {
-    return this.dom.window.document.querySelector('[class*=BottomDock]');
+    return this.dom.window.document.querySelector(
+      '[class*=e12qeq3o1-container]',
+    );
   }
 
   private getBottomRightDock(): Element {
     return this.dom.window.document.querySelector(
-      '[class*=BottomDock] [class*=PanelWrapper]:nth-child(2)',
+      '[class*=e12qeq3o1-container] [class*=eo7xiku0]:nth-child(2)',
     );
   }
 
   private getLeftDock(): Element | undefined {
-    return this.dom.window.document.querySelector('[class*=LeftDock]');
+    return this.dom.window.document.querySelector(
+      '[class*=e12qeq3o2-container]',
+    );
   }
 
   private getRightDock(): Element | undefined {
-    return this.dom.window.document.querySelector('[class*=RightDock]');
+    return this.dom.window.document.querySelector(
+      '[class*=e12qeq3o3-container]',
+    );
   }
 
   private getChoices(): Choice[] {
@@ -206,7 +210,7 @@ export class QSpiderGameParser {
   }
 
   private actionButtonsToChoices($container: Element): Choice[] {
-    const $btns = $container.querySelectorAll('[class*=ActionButton]');
+    const $btns = $container.querySelectorAll('[class*=egqqxmy0]');
     return Array.from<Element>($btns).map((el) => ({
       type: ActionType.Choice,
       text: el.textContent.trim(),
@@ -269,7 +273,7 @@ export class QSpiderModalParser {
   }
 
   isModalWindowExist(): boolean {
-    return !!this.getModalWindow();
+    return !!this.$modalWindow;
   }
 
   parse(): Scene {
@@ -285,13 +289,21 @@ export class QSpiderModalParser {
   }
 
   private getModalWindow(): Element | null {
-    return this.dom.window.document.querySelector('[class*=ModalContainer]');
+    return this.dom.window.document.querySelector('[class*=e12ysyus4]');
   }
 
   private getText(): string {
-    const content = this.$modalWindow.querySelector(
-      '.rcs-inner-container > div > form',
-    ).textContent;
+    const TEXT_NODE = 3;
+    let content = '';
+    // NOTE: Take only text notes without nested
+    const $container =
+      this.$modalWindow.querySelector('form') ??
+      this.$modalWindow.querySelector('.os-content');
+    $container.childNodes.forEach((value) => {
+      if (value.nodeType === TEXT_NODE) {
+        content += value.nodeValue;
+      }
+    });
     return escapeTextForMarkup(content);
   }
 
@@ -312,7 +324,7 @@ export class QSpiderModalParser {
   }
 
   private getTextInput(): Element | null {
-    return this.$modalWindow.querySelector('[class*=TextInput]');
+    return this.$modalWindow.querySelector('[class*=epa50c20]');
   }
 
   private getChoicesOrClose(): Choice[] {
@@ -324,7 +336,7 @@ export class QSpiderModalParser {
   }
 
   private getChoices(): Choice[] {
-    const $btns = this.$modalWindow.querySelectorAll('[class*=-Button]');
+    const $btns = this.$modalWindow.querySelectorAll('[class*=e19hjue90]');
     return Array.from<Element>($btns).map((el) => ({
       type: ActionType.Choice,
       text: el.textContent.trim(),
@@ -333,7 +345,7 @@ export class QSpiderModalParser {
   }
 
   private getCloseAsChoice(): Choice {
-    const $closeBtn = this.$modalWindow.querySelector('[class*=-CloseButton]');
+    const $closeBtn = this.$modalWindow.querySelector('[class*=e12ysyus1]');
     return {
       type: ActionType.Choice,
       text: 'X',
