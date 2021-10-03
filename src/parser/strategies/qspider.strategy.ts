@@ -8,7 +8,10 @@ import { Scene } from '../../player/interfaces/scene.interface';
 import { ParserStrategy } from '../interfaces/parser-strategy.interface';
 import { getCSSSelector } from '../utils/css-selector.util';
 import { extractMediaFromDom } from '../utils/dom-media-extractor.util';
-import { escapeTextForMarkup } from '../utils/markup-escape.util';
+import {
+  convertHtmlToMarkup,
+  escapeTextForMarkup,
+} from '../utils/markup-escape.util';
 
 export default {
   name: 'qspider',
@@ -71,7 +74,7 @@ class QSpiderMenuParser {
       const description = this.getGameDescription($slot);
       text += `*${title}*\n${description}\n\n`;
     }
-    return this.formatSceneText(text);
+    return escapeTextForMarkup(text);
   }
 
   private getGameChoices(): Choice[] {
@@ -89,15 +92,12 @@ class QSpiderMenuParser {
   private getGameDescription($game: Element): string {
     return $game.getElementsByTagName('p')?.[0]?.textContent || '';
   }
-
-  private formatSceneText(text: string): string {
-    return text.replace(/[#+\-=|{}.![\]()>`]/g, '\\$&');
-  }
 }
 
 export class QSpiderGameParser {
   private $mainDock: Element;
   private $bottomDock: Element;
+  private $bottomRightDock: Element | null;
   private $leftDock: Element | null;
   private $rightDock: Element | null;
 
@@ -106,22 +106,22 @@ export class QSpiderGameParser {
   parse(): Scene {
     this.$mainDock = this.getMainDock();
     this.$bottomDock = this.getBottomDock();
+    this.$bottomRightDock = this.getBottomRightDock();
     this.$leftDock = this.getLeftDock();
     this.$rightDock = this.getRightDock();
     const modalParser = new QSpiderModalParser(this.dom);
-    const popupParser = new QSpiderPopupMenuParser(this.dom);
 
     if (modalParser.isModalWindowExist()) {
       return modalParser.parse();
     }
 
-    if (popupParser.isPopupMenuExist()) {
-      return popupParser.parse();
-    }
-
     const media = this.getMediaByPriorityIfExist();
     const choices = this.getChoices();
-    const text = this.getMainDockText();
+    let text = this.getMainDockText();
+    if (this.getBottomRightDockerText() !== '') {
+      text += `\n${escapeTextForMarkup('------- Menu -------')}\n\n`;
+      text += this.getBottomRightDockerText();
+    }
     return {
       text,
       media,
@@ -139,6 +139,12 @@ export class QSpiderGameParser {
     return this.dom.window.document.querySelector('[class*=BottomDock]');
   }
 
+  private getBottomRightDock(): Element {
+    return this.dom.window.document.querySelector(
+      '[class*=BottomDock] [class*=PanelWrapper]:nth-child(2)',
+    );
+  }
+
   private getLeftDock(): Element | undefined {
     return this.dom.window.document.querySelector('[class*=LeftDock]');
   }
@@ -152,11 +158,11 @@ export class QSpiderGameParser {
     const commandChoices = this.makeCommandChoices();
     const mainChoices = this.getChoicesFromBottomDock();
     const otherChoices = this.getChoicesFromRightDock();
-    const popupChoices = []; // TODO: Get choices from popups
+    const popupChoices = this.getPopupChoices();
 
     choices.push(...commandChoices, ...mainChoices);
     if (otherChoices.length > 0) {
-      choices.push(this.getSeparatorChoice('Other'));
+      choices.push(this.getSeparatorChoice('Menu'));
     }
     choices.push(...otherChoices);
     if (popupChoices.length > 0) {
@@ -179,7 +185,9 @@ export class QSpiderGameParser {
     const $links = this.$mainDock.querySelectorAll('a');
     return Array.from<Element>($links).map((el, idx) => {
       const command = `/_${++idx}`;
-      el.textContent = `${command} ${el.textContent.trim()}`;
+      el.textContent = `${command} ${escapeTextForMarkup(
+        el.textContent.trim(),
+      )}`;
       return {
         type: ActionType.Choice,
         text: command,
@@ -204,6 +212,15 @@ export class QSpiderGameParser {
       text: el.textContent.trim(),
       selector: getCSSSelector(el),
     }));
+  }
+
+  private getPopupChoices(): Choice[] {
+    const popupParser = new QSpiderPopupMenuParser(this.dom);
+    if (!popupParser.isPopupMenuExist()) {
+      return [];
+    }
+
+    return popupParser.getChoices();
   }
 
   private getMediaByPriorityIfExist(): Media | null {
@@ -231,25 +248,16 @@ export class QSpiderGameParser {
   }
 
   private getMainDockText(): string {
-    this.formatMainDockText();
-    return this.$mainDock.textContent;
+    this.$mainDock.innerHTML = convertHtmlToMarkup(this.$mainDock.innerHTML);
+    return escapeTextForMarkup(this.$mainDock.textContent);
   }
 
-  private formatMainDockText(): void {
-    this.$mainDock.innerHTML = this.$mainDock.innerHTML
-      .replace(/<li>/g, '* ')
-      .replace(/<\/li>/g, '\n')
-      .replace(/[_*~]/g, '\\$&')
-      .replace(/<br>/g, '\n')
-      .replace(/<tw-consecutive-br>/g, '\n')
-      .replace(/<\/?h1>/g, '*')
-      .replace(/<\/?b>/g, '*')
-      .replace(/<\/?i>/g, '_')
-      .replace(/<\/?s>/g, '~')
-      .replace(/<\/?a.*?>/g, '*');
-    this.$mainDock.textContent = escapeTextForMarkup(
-      this.$mainDock.textContent,
+  private getBottomRightDockerText(): string {
+    if (!this.$bottomRightDock) return '';
+    this.$bottomRightDock.innerHTML = convertHtmlToMarkup(
+      this.$bottomRightDock.innerHTML,
     );
+    return escapeTextForMarkup(this.$bottomRightDock.textContent);
   }
 }
 
@@ -344,18 +352,21 @@ export class QSpiderPopupMenuParser {
   constructor(private dom: JSDOM) {
     this.$popupMenu = this.getPopupMenu();
   }
+
   isPopupMenuExist(): boolean {
     return !!this.getPopupMenu();
   }
 
-  parse(): Scene {
-    return {
-      text: '',
-      actions: [],
-    };
+  getChoices(): Choice[] {
+    const $btns = this.$popupMenu.querySelectorAll('button');
+    return Array.from<Element>($btns).map((el) => ({
+      type: ActionType.Choice,
+      text: el.textContent.trim(),
+      selector: getCSSSelector(el),
+    }));
   }
 
   private getPopupMenu(): Element | null {
-    return this.dom.window.document.querySelector('[class*=MenuWrapper]');
+    return this.dom.window.document.querySelector('[class*=e1d5449f0]');
   }
 }
