@@ -42,7 +42,7 @@ export class PlayerService implements OnModuleInit {
     }
 
     await this.browserService.clickBySelector(choice.selector);
-    await this.browserService.page.waitForSelector('[class*=MainFrame]'); // REMOVE THIS! And make system for anchors
+    await this.browserService.page.waitForSelector(this.parserStrategy.anchor);
     await this.parseScene();
   }
 

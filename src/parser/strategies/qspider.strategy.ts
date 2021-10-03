@@ -11,6 +11,7 @@ import { escapeTextForMarkup } from '../utils/markup-escape.util';
 
 export default {
   name: 'qspider',
+  anchor: '[class*=MainFrame]',
   parse(content) {
     return new QSpiderStrategy(content).parse();
   },
