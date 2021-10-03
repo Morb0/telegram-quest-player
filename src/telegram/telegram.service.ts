@@ -29,6 +29,11 @@ export class TelegramService {
     const MAX_MESSAGE_LENGTH = 4096;
     const MAX_MESSAGE_WITH_CAPTION_LENGTH = 1024;
     const scene = this.playerService.currentScene;
+    if (!scene) {
+      await ctx.reply('Game loading...');
+      return;
+    }
+
     const chunkSize = scene?.media
       ? MAX_MESSAGE_WITH_CAPTION_LENGTH
       : MAX_MESSAGE_LENGTH;
@@ -41,9 +46,9 @@ export class TelegramService {
     if (!scene.choices.length) {
       extra.reply_markup = Markup.removeKeyboard().reply_markup;
     } else {
-      const buttons = scene.choices.map((choice) =>
-        Markup.button.text(choice.text),
-      );
+      const buttons = scene.choices
+        .filter((choice) => !choice.text.startsWith('/_'))
+        .map((choice) => Markup.button.text(choice.text));
       extra.reply_markup = Markup.keyboard(buttons).reply_markup;
     }
 
