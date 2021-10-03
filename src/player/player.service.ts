@@ -30,6 +30,7 @@ export class PlayerService implements OnModuleInit {
 
   async startNewSession(): Promise<void> {
     await this.browserService.openUrl(this.localServerUrl);
+    await this.parseScene();
   }
 
   isChoiceExist(text: string): boolean {
