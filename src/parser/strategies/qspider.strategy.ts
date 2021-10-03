@@ -148,12 +148,31 @@ export class QSpiderGameParser {
   }
 
   private getChoices(): Choice[] {
-    return [
-      ...this.makeCommandChoices(),
-      ...this.getChoicesFromBottomDock(),
-      ...this.getChoicesFromRightDock(),
-      // TODO: Get action buttons from popups
-    ];
+    const choices: Choice[] = [];
+    const commandChoices = this.makeCommandChoices();
+    const mainChoices = this.getChoicesFromBottomDock();
+    const otherChoices = this.getChoicesFromRightDock();
+    const popupChoices = []; // TODO: Get choices from popups
+
+    choices.push(...commandChoices, ...mainChoices);
+    if (otherChoices.length > 0) {
+      choices.push(this.getSeparatorChoice('Other'));
+    }
+    choices.push(...otherChoices);
+    if (popupChoices.length > 0) {
+      choices.push(this.getSeparatorChoice('Popup'));
+    }
+    choices.push(...popupChoices);
+
+    return choices;
+  }
+
+  private getSeparatorChoice(label: string): Choice {
+    return {
+      type: ActionType.Choice,
+      text: `------------ ${label} ------------`,
+      selector: 'body',
+    };
   }
 
   private makeCommandChoices(): Choice[] {
@@ -263,7 +282,7 @@ export class QSpiderModalParser {
 
   private getText(): string {
     const content = this.$modalWindow.querySelector(
-      '.rcs-inner-container>div',
+      '.rcs-inner-container > div > form',
     ).textContent;
     return escapeTextForMarkup(content);
   }
@@ -306,7 +325,7 @@ export class QSpiderModalParser {
   }
 
   private getCloseAsChoice(): Choice {
-    const $closeBtn = this.$modalWindow.querySelector('[class*=-CloseButton ]');
+    const $closeBtn = this.$modalWindow.querySelector('[class*=-CloseButton]');
     return {
       type: ActionType.Choice,
       text: 'X',
