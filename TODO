@@ -3,4 +3,7 @@
 + Remove action buttons text parsing from modal text
 + Add support for text input modals
 + Add separating messages if message text too big (>4096 symbols)
-- Add support for popup menus from right dock
++ Add support for popup menus from right dock
++ Add somewhere text from right block (to the end?)
+- Add custom patches support (example: wait when in text some phrase and then add delay because game take some more time to load answers)
+- Get qspider background images from CSS
