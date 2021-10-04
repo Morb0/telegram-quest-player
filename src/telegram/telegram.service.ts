@@ -38,6 +38,7 @@ export class TelegramService {
       );
     } catch (e) {
       await ctx.reply(`❌ Some bad occurred - ${e.message}`);
+      await ctx.reply('ℹ️ Try /reset command to restart session.');
     }
   }
 
