@@ -1,5 +1,5 @@
 export function escapeTextForMarkup(text: string): string {
-  return text.replace(/[#+\-=|{}.![\]()>`]/g, '\\$&');
+  return text.replace(/[_*\[\]()~`>$+\-=|{}.!]/g, '\\$&');
 }
 
 export function convertHtmlToMarkup(text: string): string {
