@@ -86,11 +86,11 @@ class QSpiderMenuParser {
   }
 
   private getGameTitle($game: Element): string {
-    return $game.getElementsByTagName('h3')[0].textContent;
+    return $game.getElementsByTagName('h3')[0].textContent.trim();
   }
 
   private getGameDescription($game: Element): string {
-    return $game.getElementsByTagName('p')?.[0]?.textContent || '';
+    return $game.getElementsByTagName('p')?.[0]?.textContent.trim() || '';
   }
 }
 
@@ -253,7 +253,7 @@ export class QSpiderGameParser {
 
   private getMainDockText(): string {
     this.$mainDock.innerHTML = convertHtmlToMarkup(this.$mainDock.innerHTML);
-    return escapeTextForMarkup(this.$mainDock.textContent);
+    return escapeTextForMarkup(this.$mainDock.textContent.trim());
   }
 
   private getBottomRightDockerText(): string {
@@ -261,7 +261,7 @@ export class QSpiderGameParser {
     this.$bottomRightDock.innerHTML = convertHtmlToMarkup(
       this.$bottomRightDock.innerHTML,
     );
-    return escapeTextForMarkup(this.$bottomRightDock.textContent);
+    return escapeTextForMarkup(this.$bottomRightDock.textContent.trim());
   }
 }
 
