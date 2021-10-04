@@ -34,7 +34,7 @@ export class TelegramService {
       }
 
       await ctx.reply(
-        '⚠️ Failed to found action. May be you do something wrong?',
+        '⚠️ Failed to found action. Maybe something went wrong? Try /reset command.',
       );
     } catch (e) {
       await ctx.reply(`❌ Some bad occurred - ${e.message}`);
