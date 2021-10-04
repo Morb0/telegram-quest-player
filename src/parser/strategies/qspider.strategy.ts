@@ -8,8 +8,10 @@ import { Scene } from '../../player/interfaces/scene.interface';
 import { ParserStrategy } from '../interfaces/parser-strategy.interface';
 import { getCSSSelector } from '../utils/css-selector.util';
 import { extractMediaFromDom } from '../utils/dom-media-extractor.util';
+import { makeInTextCommand } from '../utils/in-text-command.util';
 import {
   convertHtmlToMarkup,
+  escapeElementTextForMarkup,
   escapeTextForMarkup,
 } from '../utils/markup-escape.util';
 
@@ -115,6 +117,8 @@ export class QSpiderGameParser {
       return modalParser.parse();
     }
 
+    this.escapeTextInDocks();
+
     const media = this.getMediaByPriorityIfExist();
     const choices = this.getChoices();
     let text = this.getMainDockText();
@@ -188,10 +192,8 @@ export class QSpiderGameParser {
   private makeCommandChoices(): Choice[] {
     const $links = this.$mainDock.querySelectorAll('a');
     return Array.from<Element>($links).map((el, idx) => {
-      const command = `/_${++idx}`;
-      el.textContent = `${command} ${escapeTextForMarkup(
-        el.textContent.trim(),
-      )}`;
+      const command = makeInTextCommand(idx);
+      el.textContent = `${command} ${el.textContent.trim()}`;
       return {
         type: ActionType.Choice,
         text: command,
@@ -251,9 +253,16 @@ export class QSpiderGameParser {
     };
   }
 
+  private escapeTextInDocks(): void {
+    escapeElementTextForMarkup(this.$mainDock);
+    if (this.$bottomRightDock) {
+      escapeElementTextForMarkup(this.$bottomRightDock);
+    }
+  }
+
   private getMainDockText(): string {
     this.$mainDock.innerHTML = convertHtmlToMarkup(this.$mainDock.innerHTML);
-    return escapeTextForMarkup(this.$mainDock.textContent.trim());
+    return this.$mainDock.textContent.trim();
   }
 
   private getBottomRightDockerText(): string {
@@ -261,7 +270,7 @@ export class QSpiderGameParser {
     this.$bottomRightDock.innerHTML = convertHtmlToMarkup(
       this.$bottomRightDock.innerHTML,
     );
-    return escapeTextForMarkup(this.$bottomRightDock.textContent.trim());
+    return this.$bottomRightDock.textContent.trim();
   }
 }
 

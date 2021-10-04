@@ -1,5 +1,13 @@
+import { replaceTextInElement } from './dom-text-replace.util';
+
+const MARKUP_ESCAPE_REGEXP = /[_*\[\]()~`>$+\-=|{}.!]/g;
+
 export function escapeTextForMarkup(text: string): string {
-  return text.replace(/[_*\[\]()~`>$+\-=|{}.!]/g, '\\$&');
+  return text.replace(MARKUP_ESCAPE_REGEXP, '\\$&');
+}
+
+export function escapeElementTextForMarkup(elem: Element): void {
+  replaceTextInElement(elem, MARKUP_ESCAPE_REGEXP, '\\$&');
 }
 
 export function convertHtmlToMarkup(text: string): string {

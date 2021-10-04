@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Context, Markup } from 'telegraf';
 import { ExtraReplyMessage } from 'telegraf/typings/telegram-types';
 
+import { isInTextCommand } from '../parser/utils/in-text-command.util';
 import { ActionType } from '../player/enums/action-type.enum';
 import { MediaKind } from '../player/enums/media-kind.enum';
 import { Choice } from '../player/interfaces/action.interface';
@@ -70,7 +71,7 @@ export class TelegramService {
     } else {
       const buttons = scene.actions
         .filter((action) => action.type === ActionType.Choice)
-        .filter((choice: Choice) => !choice.text.startsWith('/_'))
+        .filter((choice: Choice) => !isInTextCommand(choice.text))
         .map((choice: Choice) => Markup.button.text(choice.text));
       extra.reply_markup = Markup.keyboard(buttons).reply_markup;
     }
